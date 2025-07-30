@@ -6,19 +6,22 @@
 
 class ComponentTypeId {
 public:
+    using Value = uint32_t;
+
+    explicit ComponentTypeId(Value id);
+
     template<typename T>
     static ComponentTypeId Get();
 
     bool operator==(const ComponentTypeId &rhs) const;
     bool operator!=(const ComponentTypeId &rhs) const;
 
-    [[nodiscard]] uint32_t GetId() const;
+    [[nodiscard]] Value GetValue() const;
 
 private:
-    static std::atomic<uint32_t> nextId;
+    static std::atomic<Value> nextId;
 
-    explicit ComponentTypeId(uint32_t id);
-    uint32_t id;
+    Value value;
 };
 
 template<typename T>
@@ -27,27 +30,25 @@ ComponentTypeId ComponentTypeId::Get() {
     return id;
 }
 
-inline std::atomic<uint32_t> ComponentTypeId::nextId = 0;
+inline std::atomic<ComponentTypeId::Value> ComponentTypeId::nextId = 0;
 
-inline ComponentTypeId::ComponentTypeId(uint32_t id) : id(id) {}
+inline ComponentTypeId::ComponentTypeId(Value id) : value(id) {}
 
 inline bool ComponentTypeId::operator==(const ComponentTypeId &rhs) const {
-    return id == rhs.id;
+    return value == rhs.value;
 }
 
 inline bool ComponentTypeId::operator!=(const ComponentTypeId &rhs) const {
     return !(rhs == *this);
 }
 
-inline uint32_t ComponentTypeId::GetId() const {
-    return id;
+inline ComponentTypeId::Value ComponentTypeId::GetValue() const {
+    return value;
 }
 
-namespace std {
-    template<>
-    struct hash<ComponentTypeId> {
-        std::size_t operator()(const ComponentTypeId& k) const {
-            return hash<uint32_t>()(k.GetId());
-        }
-    };
-}
+template<>
+struct std::hash<ComponentTypeId> {
+    std::size_t operator()(const ComponentTypeId& k) const noexcept {
+        return hash<ComponentTypeId::Value>()(k.GetValue());
+    }
+};
