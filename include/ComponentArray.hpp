@@ -54,5 +54,5 @@ ComponentArray ComponentArray::Create() {
 
 template<typename T>
 T& ComponentArray::Get(uint32_t index) {
-    return *static_cast<T*>(data.get() + index * elementSize);
+    return *reinterpret_cast<T*>(data.get() + index * elementSize);
 }
