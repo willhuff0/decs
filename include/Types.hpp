@@ -9,3 +9,5 @@ using EntityId = uint32_t;
 
 #define MAX_COMPONENTS 32
 using Signature = std::bitset<MAX_COMPONENTS>;
+
+using ComponentIndex = EntityId;
