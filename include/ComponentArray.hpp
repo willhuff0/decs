@@ -1,38 +1,58 @@
 #pragma once
 
+#include "DeferredConstructor.hpp"
 #include "Types.hpp"
 
-#include <cstring>
-#include <vector>
+#include <cstdint>
+#include <functional>
+#include <memory>
 
 class ComponentArray {
 public:
-    explicit ComponentArray(uint32_t elementSize) : elementSize(elementSize) { }
-
-    void Push();
-    void Pop();
-
-    unsigned char* Get(ComponentIndex index);
+    using Mover = std::function<void(void* src, void* dest)>;
+    using Destructor = std::function<void(void* ptr)>;
 
     template<typename T>
-    T& GetRef(ComponentIndex index);
+    static ComponentArray Create();
 
-    void Set(ComponentIndex index, const unsigned char* element);
+    explicit ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor);
+    ComponentArray(ComponentArray&& other) noexcept;
+    ComponentArray& operator=(ComponentArray&& other) noexcept;
+    ComponentArray(const ComponentArray&) = delete;
+    ComponentArray& operator=(const ComponentArray&) = delete;
+    ~ComponentArray();
+
+    void EmplaceBack(IDeferredConstructor* constructor);
+    void MoveAndPop(ComponentIndex indexToRemove);
 
     template<typename T>
-    void Set(ComponentIndex index, const T& element);
+    T& Get(uint32_t index);
 
 private:
     uint32_t elementSize;
-    std::vector<unsigned char> data;
+    size_t elementCount = 0;
+    size_t capacity = 0;
+    std::unique_ptr<unsigned char[]> data;
+
+    Mover mover;
+    Destructor destructor;
+
+    void grow();
+    void reallocate(size_t newCapacity);
 };
 
 template<typename T>
-T& ComponentArray::GetRef(ComponentIndex index) {
-   return *reinterpret_cast<T*>(data.data() + index * elementSize);
+ComponentArray ComponentArray::Create() {
+    auto mover = [](void* src, void* dest) {
+        new(dest) T(std::move(*static_cast<T*>(src)));
+    };
+    auto destructor = [](void* ptr) {
+        static_cast<T*>(ptr)->~T();
+    };
+    return ComponentArray(sizeof(T), mover, destructor);
 }
 
 template<typename T>
-void ComponentArray::Set(ComponentIndex index, const T& element) {
-    std::memcpy(data.data() + index * elementSize, &element, elementSize);
+T& ComponentArray::Get(uint32_t index) {
+    return *static_cast<T*>(data.get() + index * elementSize);
 }
