@@ -29,3 +29,15 @@ void Archetype::DeleteEntity(EntityId id) {
         componentArray.MoveAndPop(indexToRemove);
     }
 }
+
+ComponentArray& Archetype::GetComponentArray(ComponentTypeId componentTypeId) {
+    return componentArrays.at(componentTypeId);
+}
+
+EntityId Archetype::GetEntityId(ComponentIndex componentIndex) const {
+    return componentIndexToEntityId.at(componentIndex);
+}
+
+ComponentIndex Archetype::GetSize() const {
+    return componentArraySize;
+}
