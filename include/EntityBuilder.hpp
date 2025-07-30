@@ -28,7 +28,7 @@ private:
 
 template<typename T, typename... Args>
 EntityBuilder& EntityBuilder::AddComponent(Args&&... args) {
-    signature.set(ComponentTypeId::Get<T>());
+    signature.set(ComponentTypeId::Get<T>().GetValue());
     constructors.emplace(ComponentTypeId::Get<T>(), new DeferredConstructor(std::forward<Args>(args)...));
     return *this;
 }
