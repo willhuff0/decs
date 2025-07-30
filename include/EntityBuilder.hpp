@@ -5,10 +5,11 @@
 #include "Types.hpp"
 
 #include <unordered_map>
-#include <memory>
 
 class EntityBuilder {
 public:
+    ~EntityBuilder();
+
     /// Adds a component.
     /// @tparam T The type of component to add.
     /// @param args The arguments to be passed to the component constructor. Construction is deferred, so these are always copied by value.
@@ -22,12 +23,12 @@ public:
 
 private:
     Signature signature;
-    std::unordered_map<ComponentTypeId, std::unique_ptr<IDeferredConstructor>> components;
+    std::unordered_map<ComponentTypeId, IDeferredConstructor*> constructors;
 };
 
 template<typename T, typename... Args>
 EntityBuilder& EntityBuilder::AddComponent(Args&&... args) {
     signature.set(ComponentTypeId::Get<T>());
-    components.emplace(ComponentTypeId::Get<T>(), std::make_unique<DeferredConstructor>(std::forward<Args>(args)...));
+    constructors.emplace(ComponentTypeId::Get<T>(), new DeferredConstructor(std::forward<Args>(args)...));
     return *this;
 }
