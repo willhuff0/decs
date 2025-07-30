@@ -7,5 +7,5 @@ add_library(decs STATIC src/decs.cpp
                         src/ComponentArray.cpp
                         src/Archetype.cpp
                         src/EntityBuilder.cpp
-                        include/DeferredConstructor.hpp)
+                        src/Query.cpp)
 target_include_directories(decs PUBLIC include)
