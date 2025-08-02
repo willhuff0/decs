@@ -23,3 +23,8 @@ std::vector<std::reference_wrapper<Archetype>>& Query::GetArchetypes() {
 std::vector<std::reference_wrapper<ComponentArray>>& Query::GetComponentArrays(ComponentTypeId componentTypeId) {
     return componentArrayVectors.at(componentTypeId);
 }
+
+std::unordered_map<ComponentTypeId, std::vector<std::reference_wrapper<ComponentArray>>>&
+Query::GetComponentArrayVectors() {
+    return componentArrayVectors;
+}

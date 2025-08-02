@@ -30,6 +30,7 @@ public:
 
     std::vector<std::reference_wrapper<Archetype>>& GetArchetypes();
     std::vector<std::reference_wrapper<ComponentArray>>& GetComponentArrays(ComponentTypeId componentTypeId);
+    std::unordered_map<ComponentTypeId, std::vector<std::reference_wrapper<ComponentArray>>>& GetComponentArrayVectors();
 
 private:
     std::vector<std::reference_wrapper<Archetype>> archetypes;
