@@ -9,6 +9,8 @@
 #include <utility>
 
 class ISystem {
+    friend class SystemManager;
+
 public:
     virtual ~ISystem() = default;
 

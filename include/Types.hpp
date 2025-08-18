@@ -4,6 +4,8 @@
 #include <limits>
 #include <cstdint>
 
+#include <ComponentTypeId.hpp>
+
 using EntityId = uint32_t;
 #define MAX_ENTITIES std::numeric_limits<EntityId>::max();
 
@@ -11,3 +13,10 @@ using EntityId = uint32_t;
 using Signature = std::bitset<MAX_COMPONENTS>;
 
 using ComponentIndex = EntityId;
+
+template<typename... Comps>
+Signature SignatureFromComps() {
+    Signature signature;
+    (signature.set(ComponentTypeId::Get<Comps>().GetValue()), ...);
+    return signature;
+}
