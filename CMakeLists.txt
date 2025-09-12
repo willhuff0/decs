@@ -8,5 +8,6 @@ add_library(decs STATIC src/decs.cpp
                         src/Archetype.cpp
                         src/EntityBuilder.cpp
                         src/Query.cpp
-                        src/SystemManager.cpp)
+                        src/SystemManager.cpp
+                        src/DeferredExecutor.cpp)
 target_include_directories(decs PUBLIC include)
