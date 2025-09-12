@@ -1,4 +1,4 @@
-#include <EntityBuilder.hpp>
+#include <decs/EntityBuilder.hpp>
 
 EntityBuilder::~EntityBuilder() {
     for (auto [componentTypeId, constructor] : constructors) {

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Types.hpp>
-#include <Archetype.hpp>
-#include <DeferredExecutor.hpp>
-#include <SystemManager.hpp>
-#include <EntityBuilder.hpp>
+#include "Types.hpp"
+#include "Archetype.hpp"
+#include "DeferredExecutor.hpp"
+#include "SystemManager.hpp"
+#include "EntityBuilder.hpp"
 
 #include <unordered_map>
 #include <memory>

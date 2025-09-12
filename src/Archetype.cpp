@@ -1,4 +1,4 @@
-#include <Archetype.hpp>
+#include <decs/Archetype.hpp>
 
 void Archetype::CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, IDeferredConstructor*>& constructors) {
     ComponentIndex newIndex = componentArraySize++;

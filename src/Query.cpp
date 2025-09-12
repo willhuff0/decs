@@ -1,6 +1,4 @@
-#include <Query.hpp>
-
-#include "EntityBuilder.hpp"
+#include <decs/Query.hpp>
 
 Query::Query(Signature signature, std::vector<std::reference_wrapper<Archetype>> archetypes) :
     archetypes(std::move(archetypes)) {

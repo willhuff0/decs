@@ -1,4 +1,4 @@
-#include <ComponentArray.hpp>
+#include <decs/ComponentArray.hpp>
 
 ComponentArray::ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor) :
     elementSize(elementSize),

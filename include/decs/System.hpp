@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Types.hpp>
-#include <DeferredMutator.hpp>
-#include <ComponentArray.hpp>
-#include <Query.hpp>
+#include "Types.hpp"
+#include "DeferredMutator.hpp"
+#include "ComponentArray.hpp"
+#include "Query.hpp"
 
 #include <type_traits>
 #include <utility>
