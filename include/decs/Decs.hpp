@@ -52,3 +52,15 @@ private:
     DeferredExecutor deferredExecutor;
     SystemManager systemManager;
 };
+
+template<typename T>
+T Decs::GetComponent(EntityId id) {
+    return archetypes.at(entities.at(id)).GetComponent<T>(id);
+}
+
+template<typename T>
+void Decs::SetComponent(EntityId id, T value) {
+    deferredExecutor.PushFunc([id, value](Decs* decs) {
+        decs->archetypes.at(decs->entities.at(id)).GetComponent<T>(id) = value;
+    });
+}
