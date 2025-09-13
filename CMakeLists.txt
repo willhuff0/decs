@@ -8,6 +8,8 @@ add_library(decs::decs ALIAS decs)
 
 target_sources(decs
     PRIVATE
+        src/Decs.cpp
+        src/ComponentTypeId.cpp
         src/ComponentArray.cpp
         src/Archetype.cpp
         src/EntityBuilder.cpp

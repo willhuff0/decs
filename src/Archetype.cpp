@@ -1,18 +1,18 @@
 #include <decs/Archetype.hpp>
 
-void Archetype::CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, IDeferredConstructor*>& constructors) {
 Archetype::Archetype(const std::vector<ComponentTypeId>& componentTypeIds) {
     for (const auto& componentTypeId : componentTypeIds) {
         componentArrays.emplace(componentTypeId, componentTypeId);
     }
 }
 
+void Archetype::CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors) {
     ComponentIndex newIndex = componentArraySize++;
 
     entityIdToComponentIndex.emplace(id, newIndex);
     componentIndexToEntityId.emplace(newIndex, id);
 
-    for (auto& [componentTypeId, componentArray]: componentArrays) {
+    for (auto& [componentTypeId, componentArray] : componentArrays) {
         componentArray.EmplaceBack(constructors.at(componentTypeId));
     }
 }
@@ -31,7 +31,7 @@ void Archetype::DeleteEntity(EntityId id) {
     entityIdToComponentIndex.erase(id);
     componentIndexToEntityId.erase(lastIndex);
 
-    for (auto& [componentTypeId, componentArray]: componentArrays) {
+    for (auto& [componentTypeId, componentArray] : componentArrays) {
         componentArray.MoveAndPop(indexToRemove);
     }
 }

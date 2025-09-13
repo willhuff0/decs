@@ -5,10 +5,13 @@
 #include "Types.hpp"
 
 #include <unordered_map>
+#include <memory>
+
+class Decs;
 
 class EntityBuilder {
 public:
-    ~EntityBuilder();
+    explicit EntityBuilder(std::shared_ptr<Decs> decs);
 
     /// Adds a component.
     /// @tparam T The type of component to add.
@@ -22,13 +25,15 @@ public:
     EntityId Build();
 
 private:
+    std::shared_ptr<Decs> decs;
+
     Signature signature;
-    std::unordered_map<ComponentTypeId, IDeferredConstructor*> constructors;
+    std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors;
 };
 
 template<typename T, typename... Args>
 EntityBuilder& EntityBuilder::AddComponent(Args&&... args) {
     signature.set(ComponentTypeId::Get<T>().GetValue());
-    constructors.emplace(ComponentTypeId::Get<T>(), new DeferredConstructor(std::forward<Args>(args)...));
+    constructors.emplace(ComponentTypeId::Get<T>(), std::make_shared<DeferredConstructor>(std::forward<Args>(args)...));
     return *this;
 }

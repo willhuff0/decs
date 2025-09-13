@@ -1,14 +1,9 @@
 #include <decs/EntityBuilder.hpp>
 
-EntityBuilder::~EntityBuilder() {
-    for (auto [componentTypeId, constructor] : constructors) {
-        delete constructor;
-    }
-}
+#include <decs/Decs.hpp>
+
+EntityBuilder::EntityBuilder(std::shared_ptr<Decs> decs) : decs(std::move(decs)) { }
 
 EntityId EntityBuilder::Build() {
-    // TODO: push to DeferredExecutor
-    [=]() {
-      // TODO: construct entity
-    }();
+    return decs->createEntity(constructors);
 }

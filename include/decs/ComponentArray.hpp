@@ -18,7 +18,7 @@ public:
     ComponentArray& operator=(const ComponentArray&) = delete;
     ~ComponentArray();
 
-    void EmplaceBack(IDeferredConstructor* constructor);
+    void EmplaceBack(const std::shared_ptr<IDeferredConstructor>& constructor);
     void MoveAndPop(ComponentIndex indexToRemove);
 
     template<typename T>

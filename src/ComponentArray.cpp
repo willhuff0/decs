@@ -51,7 +51,7 @@ ComponentArray::~ComponentArray() {
     }
 }
 
-void ComponentArray::EmplaceBack(IDeferredConstructor *constructor) {
+void ComponentArray::EmplaceBack(const std::shared_ptr<IDeferredConstructor>& constructor) {
     if (elementCount == capacity) {
         grow();
     }

@@ -15,7 +15,7 @@ public:
     Archetype(const Archetype&) = delete;
     Archetype& operator=(const Archetype&) = delete;
 
-    void CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, IDeferredConstructor*>& constructors);
+    void CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors);
     void DeleteEntity(EntityId id);
 
     template<typename T>

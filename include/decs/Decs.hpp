@@ -8,8 +8,10 @@
 
 #include <unordered_map>
 #include <memory>
+#include <atomic>
 
 class Decs : public std::enable_shared_from_this<Decs> {
+    friend class EntityBuilder;
 public:
     /// Creates a new Decs instance.
     /// @return A pointer to the Decs instance.
@@ -18,6 +20,8 @@ public:
     /// Creates an EntityBuilder.
     /// @return The new EntityBuilder.
     EntityBuilder CreateEntity();
+
+    /// [Deferred] Deletes an entity.
     void DeleteEntity(EntityId id);
 
     /// Gets a copy of the component of type T associated with an entity. Prefer using component references provided by systems during iteration.
@@ -41,12 +45,15 @@ private:
     /// Friend function for EntityBuilder.
     /// [Deferred] Creates a new entity with the built signature and initializes its components.
     /// @return The EntityId of the new entity.
-    EntityId createEntity(std::unordered_map<ComponentTypeId, IDeferredConstructor*> constructors);
+    EntityId createEntity(std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors);
 
 private:
     Decs();
+    ~Decs();
 
-    std::unordered_map<Signature, Archetype> archetypes;
+    std::atomic<EntityId> nextEntityId;
+
+    std::unordered_map<Signature, std::unique_ptr<Archetype>> archetypes;
     std::unordered_map<EntityId, Signature> entities;
 
     DeferredExecutor deferredExecutor;
