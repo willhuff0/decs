@@ -3,9 +3,13 @@
 #include "ComponentTypeId.hpp"
 #include "ComponentArray.hpp"
 
+#include <unordered_map>
+#include <memory>
+
 class Archetype {
 public:
-    Archetype() = default;
+    explicit Archetype(const std::vector<ComponentTypeId>& componentTypeIds);
+
     Archetype(Archetype&&) = delete;
     Archetype& operator=(Archetype&&) = delete;
     Archetype(const Archetype&) = delete;

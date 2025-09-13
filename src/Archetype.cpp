@@ -1,6 +1,12 @@
 #include <decs/Archetype.hpp>
 
 void Archetype::CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, IDeferredConstructor*>& constructors) {
+Archetype::Archetype(const std::vector<ComponentTypeId>& componentTypeIds) {
+    for (const auto& componentTypeId : componentTypeIds) {
+        componentArrays.emplace(componentTypeId, componentTypeId);
+    }
+}
+
     ComponentIndex newIndex = componentArraySize++;
 
     entityIdToComponentIndex.emplace(id, newIndex);

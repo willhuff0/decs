@@ -4,7 +4,7 @@ Query::Query(Signature signature, std::vector<std::reference_wrapper<Archetype>>
     archetypes(std::move(archetypes)) {
     for (ComponentTypeId::Value id = 0; id < MAX_COMPONENTS; id++) {
         if (!signature.test(id)) continue;
-        componentArrayVectors.emplace(ComponentTypeId(id), std::vector<std::reference_wrapper<ComponentArray>>());
+        componentArrayVectors.emplace(ComponentTypeId::GetExisting(id), std::vector<std::reference_wrapper<ComponentArray>>());
     }
 
     for (Archetype& archetype : this->archetypes) {

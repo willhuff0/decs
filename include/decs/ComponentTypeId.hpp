@@ -3,47 +3,60 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
+#include <unordered_map>
+#include <tuple>
+#include <mutex>
+
+using ComponentSize = uint32_t;
+using Mover = std::function<void(void* src, void* dest)>;
+using Destructor = std::function<void(void* ptr)>;
 
 class ComponentTypeId {
 public:
     using Value = uint32_t;
 
-    explicit ComponentTypeId(Value id);
-
     template<typename T>
     static ComponentTypeId Get();
 
-    bool operator==(const ComponentTypeId &rhs) const;
-    bool operator!=(const ComponentTypeId &rhs) const;
+    static ComponentTypeId GetExisting(Value value);
+
+    bool operator==(const ComponentTypeId& rhs) const;
+    bool operator!=(const ComponentTypeId& rhs) const;
 
     [[nodiscard]] Value GetValue() const;
 
+    [[nodiscard]] std::tuple<ComponentSize, Mover, Destructor> GetTypeErasedOps() const;
+
 private:
+    ComponentTypeId() = default;
+
     static std::atomic<Value> nextId;
+
+    static std::mutex typeErasedOpsMutex;
+    static std::unordered_map<ComponentTypeId, std::tuple<ComponentSize, Mover, Destructor>> typeErasedOps;
 
     Value value;
 };
 
 template<typename T>
 ComponentTypeId ComponentTypeId::Get() {
-    static ComponentTypeId id(nextId++);
+    static ComponentTypeId id;
+    static std::once_flag flag;
+    std::call_once(flag, [](ComponentTypeId id){
+        id.value = nextId++;
+
+        auto componentSize = sizeof(T);
+        auto mover = [](void* src, void* dest) {
+            new(dest) T(std::move(*static_cast<T*>(src)));
+        };
+        auto destructor = [](void* ptr) {
+            static_cast<T*>(ptr)->~T();
+        };
+
+        std::lock_guard lock(typeErasedOpsMutex);
+        typeErasedOps.emplace(id, std::make_tuple(componentSize, mover, destructor));
+    }, std::ref(id));
     return id;
-}
-
-inline std::atomic<ComponentTypeId::Value> ComponentTypeId::nextId = 0;
-
-inline ComponentTypeId::ComponentTypeId(Value id) : value(id) {}
-
-inline bool ComponentTypeId::operator==(const ComponentTypeId &rhs) const {
-    return value == rhs.value;
-}
-
-inline bool ComponentTypeId::operator!=(const ComponentTypeId &rhs) const {
-    return !(rhs == *this);
-}
-
-inline ComponentTypeId::Value ComponentTypeId::GetValue() const {
-    return value;
 }
 
 template<>

@@ -9,13 +9,9 @@
 
 class ComponentArray {
 public:
-    using Mover = std::function<void(void* src, void* dest)>;
-    using Destructor = std::function<void(void* ptr)>;
+    explicit ComponentArray(ComponentTypeId componentTypeId);
+    ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor);
 
-    template<typename T>
-    static ComponentArray Create();
-
-    explicit ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor);
     ComponentArray(ComponentArray&& other) noexcept;
     ComponentArray& operator=(ComponentArray&& other) noexcept;
     ComponentArray(const ComponentArray&) = delete;
@@ -40,17 +36,6 @@ private:
     void grow();
     void reallocate(size_t newCapacity);
 };
-
-template<typename T>
-ComponentArray ComponentArray::Create() {
-    auto mover = [](void* src, void* dest) {
-        new(dest) T(std::move(*static_cast<T*>(src)));
-    };
-    auto destructor = [](void* ptr) {
-        static_cast<T*>(ptr)->~T();
-    };
-    return ComponentArray(sizeof(T), mover, destructor);
-}
 
 template<typename T>
 T& ComponentArray::Get(uint32_t index) {

@@ -1,5 +1,14 @@
 #include <decs/ComponentArray.hpp>
 
+#include <tuple>
+
+ComponentArray::ComponentArray(ComponentTypeId componentTypeId) {
+    auto typeErasedOps = componentTypeId.GetTypeErasedOps();
+    elementSize = std::get<ComponentSize>(typeErasedOps);
+    mover = std::get<Mover>(typeErasedOps);
+    destructor = std::get<Destructor>(typeErasedOps);
+}
+
 ComponentArray::ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor) :
     elementSize(elementSize),
     mover(std::move(mover)),
