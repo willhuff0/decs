@@ -8,7 +8,7 @@
 
 class Archetype {
 public:
-    explicit Archetype(const std::vector<ComponentTypeId>& componentTypeIds);
+    explicit Archetype(Signature signature);
 
     Archetype(Archetype&&) = delete;
     Archetype& operator=(Archetype&&) = delete;
@@ -17,6 +17,24 @@ public:
 
     void CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors);
     void DeleteEntity(EntityId id);
+
+    /// Moves a component from this Archetype to another.
+    /// @note Caller must handle non-overlapping components via (Initialize/Deinitialize)Component.
+    /// @procedure Before calling MigrateEntity, on the source archetype, deinitialize each component which is not present in the destination archetype.
+    /// @procedure After calling MigrateEntity, on the destination archetype, initialize each component which was not present in the source archetype.
+    /// @param id The Id of the entity to migrate.
+    /// @param other The Archetype to append to.
+    void MigrateEntity(EntityId id, Archetype& other);
+
+    /// Initializes a non-overlapping component after an entity has been migrated to this archetype. Must be called immediately after MigrateEntity.
+    /// @param componentTypeId The TypeId of the component to initialize.
+    /// @param constructor The constructor to use for initialization.
+    void InitializeComponent(ComponentTypeId componentTypeId, const std::shared_ptr<IDeferredConstructor>& constructor);
+
+    /// Deinitializes a non-overlapping component before an entity is migrated from this archetype. Must be called immediately before MigrateEntity.
+    /// @param entityId The Id of the entity planned for migration.
+    /// @param componentTypeId The TypeId of the component to deinitialize.
+    void DeinitializeComponent(EntityId entityId, ComponentTypeId componentTypeId);
 
     template<typename T>
     T& GetComponent(EntityId id);

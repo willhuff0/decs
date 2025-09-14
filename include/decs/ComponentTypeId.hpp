@@ -23,6 +23,7 @@ public:
     bool operator==(const ComponentTypeId& rhs) const;
     bool operator!=(const ComponentTypeId& rhs) const;
 
+    /// The index into Signature bitset
     [[nodiscard]] Value GetValue() const;
 
     [[nodiscard]] std::tuple<ComponentSize, Mover, Destructor> GetTypeErasedOps() const;

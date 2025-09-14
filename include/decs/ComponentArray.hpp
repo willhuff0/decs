@@ -12,17 +12,26 @@ public:
     explicit ComponentArray(ComponentTypeId componentTypeId);
     ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor);
 
+    ~ComponentArray();
+
     ComponentArray(ComponentArray&& other) noexcept;
     ComponentArray& operator=(ComponentArray&& other) noexcept;
     ComponentArray(const ComponentArray&) = delete;
     ComponentArray& operator=(const ComponentArray&) = delete;
-    ~ComponentArray();
 
     void EmplaceBack(const std::shared_ptr<IDeferredConstructor>& constructor);
     void MoveAndPop(ComponentIndex indexToRemove);
 
+    /// Moves a component from this ComponentArray to the back of another.
+    /// @param fromIndex The index into this ComponentArray to remove from.
+    /// @param other The ComponentArray to append to.
+    void Migrate(ComponentIndex fromIndex, ComponentArray& other);
+
+    void ConstructInPlace();
+    void DestructInPlace();
+
     template<typename T>
-    T& Get(uint32_t index);
+    T& Get(ComponentIndex index);
 
 private:
     uint32_t elementSize;
@@ -38,6 +47,6 @@ private:
 };
 
 template<typename T>
-T& ComponentArray::Get(uint32_t index) {
+T& ComponentArray::Get(ComponentIndex index) {
     return *reinterpret_cast<T*>(data.get() + index * elementSize);
 }

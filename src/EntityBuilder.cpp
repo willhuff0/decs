@@ -5,5 +5,5 @@
 EntityBuilder::EntityBuilder(std::shared_ptr<Decs> decs) : decs(std::move(decs)) { }
 
 EntityId EntityBuilder::Build() {
-    return decs->createEntity(constructors);
+    return decs->createEntity(signature, constructors);
 }

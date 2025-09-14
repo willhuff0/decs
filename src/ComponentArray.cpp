@@ -73,6 +73,19 @@ void ComponentArray::MoveAndPop(ComponentIndex indexToRemove) {
     elementCount--;
 }
 
+void ComponentArray::Migrate(ComponentIndex fromIndex, ComponentArray& other) {
+    if (other.elementCount == other.capacity) {
+        other.grow();
+    }
+
+    void* src = data.get() + fromIndex * elementSize;
+    void* dest = other.data.get() + other.elementCount * other.elementSize;
+    mover(src, dest);
+    MoveAndPop(fromIndex);
+
+    other.elementCount++;
+}
+
 void ComponentArray::grow() {
     reallocate(capacity == 0 ? 8 : capacity * 2);
 }

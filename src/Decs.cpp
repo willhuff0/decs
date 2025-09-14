@@ -19,22 +19,19 @@ void Decs::DeleteEntity(EntityId id) {
     });
 }
 
-EntityId Decs::createEntity(std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors) {
+EntityId Decs::createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors) {
     EntityId id = nextEntityId++;
-    deferredExecutor.PushFunc([this, id, constructors = std::move(constructors)]() {
-        Signature signature = entities.at(id);
+    deferredExecutor.PushFunc([this, id, signature, constructors = std::move(constructors)]() {
+        entities.emplace(id, signature);
         Archetype* archetype;
         {
             auto iter = archetypes.find(signature);
             if (iter != archetypes.end()) {
                 archetype = iter->second.get();
             } else {
-                std::vector<ComponentTypeId> componentTypeIds;
-                for (const auto& [componentTypeId, _] : constructors) {
-                    componentTypeIds.push_back(componentTypeId);
-                }
-                archetypes.emplace(signature, std::make_unique<Archetype>(componentTypeIds));
-                systemManager.OnArchetypeAdded(signature, *archetypes.at(signature));
+                auto [newIter, _] = archetypes.emplace(signature, std::make_unique<Archetype>(signature));
+                archetype = newIter->second.get();
+                systemManager.OnArchetypeAdded(signature, *archetype);
             }
         }
         archetype->CreateEntity(id, constructors);
