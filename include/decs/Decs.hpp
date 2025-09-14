@@ -52,8 +52,8 @@ public:
     void RemoveComponent(EntityId id);
 
 private:
-    /// Friend function for EntityBuilder.
     /// [Deferred] Creates a new entity with the built signature and initializes its components.
+    /// @note Friend function for EntityBuilder.
     /// @return The EntityId of the new entity.
     EntityId createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors);
 
@@ -105,6 +105,37 @@ void Decs::AddComponent(EntityId id, Args... args) {
 
         src->MigrateEntity(id, *dest);
         dest->InitializeComponent(ComponentTypeId::Get<T>(), constructor);
+
+        if (src->GetSize() == 0) {
+            systemManager.OnArchetypeRemoved(oldSignature, *src);
+            archetypes.erase(oldSignature);
+        }
+    });
+}
+
+template<typename T>
+void Decs::RemoveComponent(EntityId id) {
+    deferredExecutor.PushFunc([this, id] {
+        Signature oldSignature = entities.at(id);
+        Signature newSignature = oldSignature;
+        newSignature.reset(ComponentTypeId::Get<T>().GetValue());
+        entities[id] = newSignature;
+
+        Archetype* dest;
+        {
+            auto iter = archetypes.find(newSignature);
+            if (iter != archetypes.end()) {
+                dest = iter->second.get();
+            } else {
+                auto [newIter, _] = archetypes.emplace(newSignature, std::make_unique<Archetype>(newSignature));
+                dest = newIter->second.get();
+                systemManager.OnArchetypeAdded(newSignature, *dest);
+            }
+        }
+        Archetype* src = archetypes.at(oldSignature).get();
+
+        src->DeinitializeComponent(id, ComponentTypeId::Get<T>());
+        src->MigrateEntity(id, *dest);
 
         if (src->GetSize() == 0) {
             systemManager.OnArchetypeRemoved(oldSignature, *src);
