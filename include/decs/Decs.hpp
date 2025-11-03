@@ -16,7 +16,7 @@ class Decs : public std::enable_shared_from_this<Decs> {
 public:
     /// Creates a new Decs instance.
     /// @return A pointer to the Decs instance.
-    static std::shared_ptr<Decs> Create();
+    static std::shared_ptr<Decs> Create(std::unique_ptr<ConcurrentQueue<std::function<void()>>> queue);
 
     /// Creates an EntityBuilder.
     /// @return The new EntityBuilder.

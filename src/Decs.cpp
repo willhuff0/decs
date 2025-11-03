@@ -1,5 +1,14 @@
 #include <decs/Decs.hpp>
 
+#include <utility>
+
+std::shared_ptr<Decs> Decs::Create(std::unique_ptr<ConcurrentQueue<std::function<void()>>> queue) {
+    return std::shared_ptr<Decs>(new Decs(std::move(queue)));
+}
+
+Decs::Decs(std::unique_ptr<ConcurrentQueue<std::function<void()>>> queue)
+  : deferredExecutor(std::move(queue)), systemManager(this) { }
+
 EntityBuilder Decs::CreateEntity() {
     return EntityBuilder { shared_from_this() };
 }
