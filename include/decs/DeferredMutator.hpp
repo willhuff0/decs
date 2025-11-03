@@ -42,3 +42,6 @@ void DeferredMutator<T>::SetValue(std::function<void(T&)> mutator) const {
         }
     });
 }
+
+template<typename T>
+using Mut = DeferredMutator<T>;
