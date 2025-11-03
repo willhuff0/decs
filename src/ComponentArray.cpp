@@ -9,7 +9,7 @@ ComponentArray::ComponentArray(ComponentTypeId componentTypeId) {
     destructor = std::get<Destructor>(typeErasedOps);
 }
 
-ComponentArray::ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor) :
+ComponentArray::ComponentArray(ComponentSize elementSize, Mover mover, Destructor destructor) :
     elementSize(elementSize),
     mover(std::move(mover)),
     destructor(std::move(destructor)) { }
@@ -84,6 +84,10 @@ void ComponentArray::Migrate(ComponentIndex fromIndex, ComponentArray& other) {
     MoveAndPop(fromIndex);
 
     other.elementCount++;
+}
+
+void* ComponentArray::Get(ComponentIndex index) {
+    return data.get() + index * elementSize;
 }
 
 void ComponentArray::grow() {

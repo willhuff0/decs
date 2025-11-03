@@ -10,7 +10,7 @@
 class ComponentArray {
 public:
     explicit ComponentArray(ComponentTypeId componentTypeId);
-    ComponentArray(uint32_t elementSize, Mover mover, Destructor destructor);
+    ComponentArray(ComponentSize elementSize, Mover mover, Destructor destructor);
 
     ~ComponentArray();
 
@@ -27,14 +27,12 @@ public:
     /// @param other The ComponentArray to append to.
     void Migrate(ComponentIndex fromIndex, ComponentArray& other);
 
-    void ConstructInPlace();
-    void DestructInPlace();
-
     template<typename T>
     T& Get(ComponentIndex index);
+    void* Get(ComponentIndex index);
 
 private:
-    uint32_t elementSize;
+    ComponentSize elementSize;
     size_t elementCount = 0;
     size_t capacity = 0;
     std::unique_ptr<unsigned char[]> data;

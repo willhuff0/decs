@@ -38,6 +38,7 @@ public:
 
     template<typename T>
     T& GetComponent(EntityId id);
+    void* GetComponent(EntityId id, ComponentTypeId componentTypeId);
 
     ComponentArray& GetComponentArray(ComponentTypeId componentTypeId);
     EntityId GetEntityId(ComponentIndex componentIndex) const;

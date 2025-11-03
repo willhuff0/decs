@@ -37,6 +37,10 @@ void Archetype::DeleteEntity(EntityId id) {
     }
 }
 
+void* Archetype::GetComponent(EntityId id, ComponentTypeId componentTypeId) {
+    return componentArrays.at(componentTypeId).Get(entityIdToComponentIndex.at(id));
+}
+
 ComponentArray& Archetype::GetComponentArray(ComponentTypeId componentTypeId) {
     return componentArrays.at(componentTypeId);
 }
