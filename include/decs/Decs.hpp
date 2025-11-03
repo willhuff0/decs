@@ -13,6 +13,7 @@
 
 class Decs : public std::enable_shared_from_this<Decs> {
     friend class EntityBuilder;
+    friend class SystemManager;
 public:
     /// Creates a new Decs instance.
     /// @return A pointer to the Decs instance.
@@ -51,17 +52,27 @@ public:
     template<typename T>
     void RemoveComponent(EntityId id);
 
+    template<typename... Comps, typename Func>
+    SystemKey RegisterSystem(Func func);
+    void UnregisterSystem(SystemKey key);
+
+    void ExecuteDeferredFunctions();
+
+    void IterateSystems();
+
 private:
     /// [Deferred] Creates a new entity with the built signature and initializes its components.
     /// @note Friend function for EntityBuilder.
     /// @return The EntityId of the new entity.
-    EntityId createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors);
+    EntityId createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors, uint32_t clones);
+
+    /// @note Friend function for SystemManager
+    const std::unordered_map<Signature, std::unique_ptr<Archetype>>& getArchetypes();
 
 private:
-    Decs();
-    ~Decs();
+    explicit Decs(std::unique_ptr<ConcurrentQueue<std::function<void()>>> queue);
 
-    std::atomic<EntityId> nextEntityId;
+    std::atomic<EntityId> nextEntityId = 0;
 
     std::unordered_map<Signature, std::unique_ptr<Archetype>> archetypes;
     std::unordered_map<EntityId, Signature> entities;
@@ -142,4 +153,9 @@ void Decs::RemoveComponent(EntityId id) {
             archetypes.erase(oldSignature);
         }
     });
+}
+
+template<typename... Comps, typename Func>
+SystemKey Decs::RegisterSystem(Func func) {
+    return systemManager.RegisterSystem<Func, Comps...>(func);
 }

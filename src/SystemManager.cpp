@@ -1,5 +1,9 @@
 #include <decs/SystemManager.hpp>
 
+#include <decs/Decs.hpp>
+
+SystemManager::SystemManager(Decs* decs) : decs(decs) { }
+
 void SystemManager::UnregisterSystem(SystemKey key) {
     auto& pair = systems.at(key);
     signatureToSystems.erase(pair.first);
@@ -35,4 +39,35 @@ void SystemManager::OnArchetypeRemoved(Signature signature, Archetype& archetype
             }
         }
     });
+}
+
+void SystemManager::IterateAll() {
+    for (const auto& [_, pair]: systems) {
+        pair.second->Iterate();
+    }
+}
+
+void SystemManager::IterateMutableAll(std::queue<Mutation>& mutations) {
+    for (const auto& [_, pair]: systems) {
+        pair.second->IterateMutable(mutations);
+    }
+}
+
+std::vector<std::reference_wrapper<Archetype>> SystemManager::getArchetypesWithSupersignature(Signature signature) {
+#if MAX_COMPONENTS <= 32
+    using IntMask = uint32_t;
+#elif MAX_COMPONENTS <= 64
+    using IntMask = uint64_t;
+#endif
+
+    IntMask mask = signature.to_ullong();
+
+    std::vector<std::reference_wrapper<Archetype>> archetypes;
+    for (const auto& [sub, archetype] : decs->getArchetypes()) {
+        IntMask subMask = sub.to_ullong();
+        if ((subMask & mask) == mask) {
+            archetypes.emplace_back(*archetype);
+        }
+    }
+    return archetypes;
 }

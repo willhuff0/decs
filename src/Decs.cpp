@@ -1,5 +1,6 @@
 #include <decs/Decs.hpp>
 
+#include <queue>
 #include <utility>
 
 std::shared_ptr<Decs> Decs::Create(std::unique_ptr<ConcurrentQueue<std::function<void()>>> queue) {
@@ -29,6 +30,29 @@ void Decs::DeleteEntity(EntityId id) {
 }
 
 EntityId Decs::createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors) {
+void Decs::UnregisterSystem(SystemKey key) {
+    systemManager.UnregisterSystem(key);
+}
+
+void Decs::ExecuteDeferredFunctions() {
+    deferredExecutor.ExecuteAll();
+}
+
+void Decs::IterateSystems() {
+    systemManager.IterateAll();
+
+    std::queue<Mutation> mutations;
+    systemManager.IterateMutableAll(mutations);
+    while (!mutations.empty()) {
+        const auto& mutation = mutations.front();
+
+        void* comp = archetypes.at(entities.at(mutation.entityId))->GetComponent(mutation.entityId, mutation.componentTypeId);
+        mutation.function(comp);
+
+        mutations.pop();
+    }
+}
+
     EntityId id = nextEntityId++;
     deferredExecutor.PushFunc([this, id, signature, constructors = std::move(constructors)]() {
         entities.emplace(id, signature);
@@ -46,4 +70,8 @@ EntityId Decs::createEntity(Signature signature, std::unordered_map<ComponentTyp
         archetype->CreateEntity(id, constructors);
     });
     return id;
+}
+
+const std::unordered_map<Signature, std::unique_ptr<Archetype>>& Decs::getArchetypes() {
+    return archetypes;
 }

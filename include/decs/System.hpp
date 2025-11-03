@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <iostream>
+
 class ISystem {
     friend class SystemManager;
 
@@ -19,16 +21,21 @@ protected:
     virtual void SetQuery(Query newQuery) = 0;
 
     virtual void Iterate() = 0;
-    virtual std::queue<Mutation> IterateMutable() = 0;
+    virtual void IterateMutable(std::queue<Mutation>& mutations) = 0;
 };
 
-template<typename... Comps>
+template<typename Func, typename... Comps>
 class System : public ISystem {
-    using Func = std::function<void(Comps...)>;
+    static_assert(std::is_invocable_v<Func, Archetype&, ComponentIndex, const Comps&...> ||
+                  std::is_invocable_v<Func, Archetype&, const Comps&...> ||
+                  std::is_invocable_v<Func, ComponentIndex, const Comps&...> ||
+                  std::is_invocable_v<Func, const Comps&...> ||
+                  std::is_invocable_v<Func, EntityId, const DeferredMutator<Comps>&...> ||
+                  std::is_invocable_v<Func, const DeferredMutator<Comps>&...>);
 
 public:
     explicit System(Query query, Func func) :
-        func(func), query(std::move(query)) {
+            func(func), query(std::move(query)) {
         cacheArchetypesComponentArrays();
     }
 
@@ -37,7 +44,7 @@ protected:
     void SetQuery(Query query) override;
 
     void Iterate() override;
-    std::queue<Mutation> IterateMutable() override;
+    void IterateMutable(std::queue<Mutation>& mutations) override;
 
 private:
     Func func;
@@ -51,18 +58,19 @@ private:
     void cacheArchetypesComponentArrays();
 };
 
-template<typename... Comps>
-Query& System<Comps...>::GetQuery() {
+template<typename Func, typename... Comps>
+Query& System<Func, Comps...>::GetQuery() {
     return query;
 }
 
-template<typename... Comps>
-void System<Comps...>::SetQuery(Query newQuery) {
-    query = newQuery;
+template<typename Func, typename... Comps>
+void System<Func, Comps...>::SetQuery(Query newQuery) {
+    query = std::move(newQuery);
+    cacheArchetypesComponentArrays();
 }
 
-template<typename... Comps>
-void System<Comps...>::Iterate() {
+template<typename Func, typename... Comps>
+void System<Func, Comps...>::Iterate() {
     if constexpr (std::is_invocable_v<Func, Archetype&, ComponentIndex, const Comps&...> ||
                   std::is_invocable_v<Func, Archetype&, const Comps&...> ||
                   std::is_invocable_v<Func, ComponentIndex, const Comps&...> ||
@@ -80,18 +88,18 @@ void System<Comps...>::Iterate() {
     }
 }
 
-template<typename... Comps>
-std::queue<Mutation> System<Comps...>::IterateMutable() {
+template<typename Func, typename... Comps>
+void System<Func, Comps...>::IterateMutable(std::queue<Mutation>& mutations) {
     if constexpr (std::is_invocable_v<Func, EntityId, const DeferredMutator<Comps>&...> ||
                   std::is_invocable_v<Func, const DeferredMutator<Comps>&...>) {
-        std::queue<Mutation> mutations;
-
-        for (const auto& [archetype, componentArrays] : archetypesComponentArrays) {
+        for (const auto& pair : archetypesComponentArrays) {
+            auto& archetype = pair.first;
+            auto& componentArrays = pair.second;
             for (ComponentIndex j = 0; j < archetype.get().GetSize(); ++j) {
                 std::apply([&](auto&... arrays) {
                     EntityId entityId = archetype.get().GetEntityId(j);
 
-                    auto mutatorsTuple = std::make_tuple(DeferredMutator<Comps>(mutations, entityId, arrays.template Get<Comps>(j))...);
+                    auto mutatorsTuple = std::make_tuple(DeferredMutator<Comps>(mutations, entityId, arrays.get().template Get<Comps>(j))...);
 
                     std::apply([&](auto&... mutators) {
                         if constexpr (std::is_invocable_v<Func, EntityId, const DeferredMutator<Comps>&...>) func(entityId, mutators...);
@@ -100,14 +108,11 @@ std::queue<Mutation> System<Comps...>::IterateMutable() {
                 }, componentArrays);
             }
         }
-
-        return mutations;
     }
-    return {};
 }
 
-template<typename... Comps>
-void System<Comps...>::cacheArchetypesComponentArrays() {
+template<typename Func, typename... Comps>
+void System<Func, Comps...>::cacheArchetypesComponentArrays() {
     auto componentArrayVectors = std::make_tuple(std::ref(query.GetComponentArrayVectors().at(ComponentTypeId::Get<Comps>()))...);
 
     archetypesComponentArrays.clear();
