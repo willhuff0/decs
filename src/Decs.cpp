@@ -29,7 +29,6 @@ void Decs::DeleteEntity(EntityId id) {
     });
 }
 
-EntityId Decs::createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors) {
 void Decs::UnregisterSystem(SystemKey key) {
     systemManager.UnregisterSystem(key);
 }
