@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 class Decs;
 
@@ -23,6 +24,7 @@ public:
     /// [Deferred] Creates a new entity with the built signature and initializes its components.
     /// @return The EntityId of the new entity.
     EntityId Build();
+    std::vector<EntityId> Build(uint32_t clones);
 
 private:
     std::shared_ptr<Decs> decs;
@@ -34,6 +36,6 @@ private:
 template<typename T, typename... Args>
 EntityBuilder& EntityBuilder::AddComponent(Args&&... args) {
     signature.set(ComponentTypeId::Get<T>().GetValue());
-    constructors.emplace(ComponentTypeId::Get<T>(), std::make_shared<DeferredConstructor>(std::forward<Args>(args)...));
+    constructors.emplace(ComponentTypeId::Get<T>(), std::make_shared<DeferredConstructor<T, Args...>>(std::forward<Args>(args)...));
     return *this;
 }

@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <cstdint>
 
 class Archetype {
 public:
@@ -16,6 +17,7 @@ public:
     Archetype& operator=(const Archetype&) = delete;
 
     void CreateEntity(EntityId id, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors);
+    void CreateEntity(const std::vector<EntityId>& ids, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors);
     void DeleteEntity(EntityId id);
 
     /// Moves a component from this Archetype to another.

@@ -52,6 +52,7 @@ void Decs::IterateSystems() {
     }
 }
 
+EntityId Decs::createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors) {
     EntityId id = nextEntityId++;
     deferredExecutor.PushFunc([this, id, signature, constructors = std::move(constructors)]() {
         entities.emplace(id, signature);
@@ -69,6 +70,32 @@ void Decs::IterateSystems() {
         archetype->CreateEntity(id, constructors);
     });
     return id;
+}
+
+std::vector<EntityId> Decs::createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors, uint32_t clones) {
+    std::vector<EntityId> ids;
+    ids.reserve(clones);
+    for(uint32_t i = 0; i < clones; i++) {
+        ids.push_back(nextEntityId++);
+    }
+    deferredExecutor.PushFunc([this, ids = std::move(ids), signature, constructors = std::move(constructors)]() {
+        for (const auto& id : ids) {
+            entities.emplace(id, signature);
+        }
+        Archetype* archetype;
+        {
+            auto iter = archetypes.find(signature);
+            if (iter != archetypes.end()) {
+                archetype = iter->second.get();
+            } else {
+                auto [newIter, _] = archetypes.emplace(signature, std::make_unique<Archetype>(signature));
+                archetype = newIter->second.get();
+                systemManager.OnArchetypeAdded(signature, *archetype);
+            }
+        }
+        archetype->CreateEntity(ids, constructors);
+    });
+    return ids;
 }
 
 const std::unordered_map<Signature, std::unique_ptr<Archetype>>& Decs::getArchetypes() {

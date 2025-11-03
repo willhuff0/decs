@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <memory>
 #include <atomic>
+#include <cstdint>
+#include <vector>
 
 class Decs : public std::enable_shared_from_this<Decs> {
     friend class EntityBuilder;
@@ -64,7 +66,8 @@ private:
     /// [Deferred] Creates a new entity with the built signature and initializes its components.
     /// @note Friend function for EntityBuilder.
     /// @return The EntityId of the new entity.
-    EntityId createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors, uint32_t clones);
+    EntityId createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors);
+    std::vector<EntityId> createEntity(Signature signature, std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>> constructors, uint32_t clones);
 
     /// @note Friend function for SystemManager
     const std::unordered_map<Signature, std::unique_ptr<Archetype>>& getArchetypes();

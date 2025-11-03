@@ -18,6 +18,21 @@ void Archetype::CreateEntity(EntityId id, const std::unordered_map<ComponentType
     }
 }
 
+void Archetype::CreateEntity(const std::vector<EntityId>& ids, const std::unordered_map<ComponentTypeId, std::shared_ptr<IDeferredConstructor>>& constructors) {
+    for (const auto& id : ids) {
+        ComponentIndex newIndex = componentArraySize++;
+
+        entityIdToComponentIndex.emplace(id, newIndex);
+        componentIndexToEntityId.emplace(newIndex, id);
+    }
+
+    for (auto& [componentTypeId, componentArray] : componentArrays) {
+        for (uint32_t i = 0; i < ids.size(); i++) {
+            componentArray.EmplaceBack(constructors.at(componentTypeId));
+        }
+    }
+}
+
 void Archetype::DeleteEntity(EntityId id) {
     ComponentIndex indexToRemove = entityIdToComponentIndex.at(id);
     ComponentIndex lastIndex = --componentArraySize;

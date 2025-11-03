@@ -7,3 +7,7 @@ EntityBuilder::EntityBuilder(std::shared_ptr<Decs> decs) : decs(std::move(decs))
 EntityId EntityBuilder::Build() {
     return decs->createEntity(signature, constructors);
 }
+
+std::vector<EntityId> EntityBuilder::Build(uint32_t clones) {
+    return decs->createEntity(signature, constructors, clones);
+}
