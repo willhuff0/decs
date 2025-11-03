@@ -1,5 +1,8 @@
 #include <decs/ComponentTypeId.hpp>
 
+std::shared_mutex TypeErasedOpsStore::typeErasedOpsMutex;
+std::unordered_map<ComponentTypeId, TypeErasedOps> TypeErasedOpsStore::typeErasedOps;
+
 ComponentTypeId ComponentTypeId::GetExisting(ComponentTypeId::Value value) {
     ComponentTypeId componentTypeId{};
     componentTypeId.value = value;
@@ -19,8 +22,8 @@ ComponentTypeId::Value ComponentTypeId::GetValue() const {
 }
 
 std::tuple<ComponentSize, Mover, Destructor> ComponentTypeId::GetTypeErasedOps() const {
-    std::lock_guard lock(typeErasedOpsMutex);
-    return typeErasedOps.at(*this);
+    std::shared_lock lock(TypeErasedOpsStore::typeErasedOpsMutex);
+    return TypeErasedOpsStore::typeErasedOps.at(*this);
 }
 
 std::atomic<ComponentTypeId::Value> ComponentTypeId::nextId = 0;
