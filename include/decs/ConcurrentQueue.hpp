@@ -1,43 +1,43 @@
 #pragma once
 
+enum class ConcurrentQueueStatus {
+    Success = 0,
+    Full,
+    Empty,
+    Closed,
+};
+
 template<typename T>
 class ConcurrentQueue {
 public:
-    enum Status {
-        Success = 0,
-        Full,
-        Empty,
-        Closed,
-    };
-
     virtual ~ConcurrentQueue() = default;
 
     /*
      * Enqueues value. Blocks if the queue is full. (Some implementations cannot be full.)
      */
-    virtual Status Enqueue(const T& value) = 0;
+    virtual ConcurrentQueueStatus Enqueue(const T& value) = 0;
     /*
      * Enqueues value. Returns immediately. Fails if the queue is full. (Some implementations cannot be full.)
      */
-    virtual Status TryEnqueue(const T& value) = 0;
+    virtual ConcurrentQueueStatus TryEnqueue(const T& value) = 0;
 
     /*
      * Enqueues value. Blocks if the queue is full. (Some implementations cannot be full.)
      */
-    virtual Status Enqueue(T&& value) = 0;
+    virtual ConcurrentQueueStatus Enqueue(T&& value) = 0;
     /*
      * Enqueues value. Returns immediately. Fails if the queue is full. (Some implementations cannot be full.)
      */
-    virtual Status TryEnqueue(T&& value) = 0;
+    virtual ConcurrentQueueStatus TryEnqueue(T&& value) = 0;
 
     /*
      * Dequeues into out. Blocks if the queue is empty.
      */
-    virtual Status Dequeue(T& out) = 0;
+    virtual ConcurrentQueueStatus Dequeue(T& out) = 0;
     /*
      * Dequeues into out. Returns immediately. Fails and does not modify out if the queue is empty.
      */
-    virtual Status TryDequeue(T& out) = 0;
+    virtual ConcurrentQueueStatus TryDequeue(T& out) = 0;
 
     /*
      * Returns true iff the queue is full. (Some implementations cannot be full and will always return false.)

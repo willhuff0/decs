@@ -9,7 +9,7 @@ void DeferredExecutor::PushFunc(std::function<void()>&& deferredFunc) {
 
 void DeferredExecutor::ExecuteAll() {
     std::function<void()> func;
-    while (queue->TryDequeue(func) == ConcurrentQueue<std::function<void()>>::Status::Success) {
+    while (queue->TryDequeue(func) == ConcurrentQueueStatus::Success) {
         func();
     }
 }
